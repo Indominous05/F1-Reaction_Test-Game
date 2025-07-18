@@ -35,6 +35,11 @@ Select your team, choose your teammate, and race across 10 world-famous circuits
 
 ---
 
+##  Play It Live
+
+ [Click here to play the game](https://indominous05.github.io/F1-Reaction_Test-Game/)
+
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
