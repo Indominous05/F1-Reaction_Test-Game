@@ -1,7 +1,7 @@
 # 🏎️ F1 Reaction Test Game
 
 A fully interactive browser-based F1 Grand Prix reaction time game.  
-Select your team, choose your teammate, and race across 10 world-famous circuits as the 21st driver in the championship!
+Select your team, choose your teammate, and race across 10 world-famous circuits as the driver in the championship!
 
 ---
 
