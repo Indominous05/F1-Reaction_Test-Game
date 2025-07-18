@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Grand Prix Championship</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 24, 1, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 212, 170, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #0a0a0a 100%);
+            background-size: 100% 100%, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Circuit-specific backgrounds */
+        .bahrain-bg { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="80" r="15" fill="rgba(255,140,0,0.1)"/><circle cx="80" cy="20" r="10" fill="rgba(255,140,0,0.05)"/></svg>'); }
+        .monaco-bg { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="10" y="70" width="80" height="20" fill="rgba(0,100,200,0.1)"/><circle cx="50" cy="30" r="20" fill="rgba(0,100,200,0.05)"/></svg>'); }
+        .silverstone-bg { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="0" y="80" width="100" height="20" fill="rgba(34,139,34,0.1)"/></svg>'); }
+
+        /* Animated racing stripes */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(255, 24, 1, 0.05) 20px,
+                    rgba(255, 24, 1, 0.05) 40px
+                );
+            animation: raceStripes 20s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Speed lines animation */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, 
+                    transparent 0%, 
+                    rgba(255, 255, 255, 0.02) 25%, 
+                    transparent 50%, 
+                    rgba(255, 255, 255, 0.02) 75%, 
+                    transparent 100%
+                );
+            animation: speedLines 3s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes raceStripes {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(50%); }
+        }
+
+        @keyframes speedLines {
+            0% { opacity: 0.3; transform: scaleX(1); }
+            100% { opacity: 0.6; transform: scaleX(1.1); }
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .server-card {
+            background: 
+                linear-gradient(135deg, rgba(255, 24, 1, 0.95) 0%, rgba(220, 20, 60, 0.95) 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 
+                0 20px 60px rgba(255, 24, 1, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .server-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: cardGlow 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes cardGlow {
+            0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.5; }
+            50% { transform: rotate(180deg) scale(1.2); opacity: 0.8; }
+        }
+
+        .server-card h1 {
+            font-size: 2.8em;
+            margin-bottom: 20px;
+            text-shadow: 
+                2px 2px 4px rgba(0,0,0,0.8),
+                0 0 20px rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .driver-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .driver-form input {
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+        }
+
+        .driver-form input:focus {
+            outline: none;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 35px rgba(0,0,0,0.3),
+                0 0 0 3px rgba(255, 24, 1, 0.3);
+        }
+
+        .driver-form button {
+            padding: 18px;
+            background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+            color: #ff1801;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .driver-form button:hover {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+            transform: translateY(-3px);
+            box-shadow: 
+                0 15px 40px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .team-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .team-option {
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .team-option:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        .team-option.selected {
+            background: rgba(0, 212, 170, 0.3);
+            border-color: #00d4aa;
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+        }
+
+        .teammate-selection {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .teammate-option {
+            padding: 15px 25px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .teammate-option:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        .teammate-option.selected {
+            background: rgba(0, 212, 170, 0.3);
+            border-color: #00d4aa;
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+        }
+
+        .welcome-message {
+            background: 
+                linear-gradient(135deg, rgba(0, 212, 170, 0.95) 0%, rgba(0, 184, 148, 0.95) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-in;
+            box-shadow: 
+                0 20px 60px rgba(0, 212, 170, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .game-container {
+            background: 
+                linear-gradient(135deg, rgba(45, 52, 54, 0.95) 0%, rgba(99, 110, 114, 0.95) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 
+                0 25px 80px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, 
+                    transparent 0%, 
+                    rgba(255, 255, 255, 0.05) 50%, 
+                    transparent 100%
+                );
+            animation: containerShimmer 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes containerShimmer {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(50%); }
+        }
+
+        .circuit-info {
+            background: 
+                linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .lights-container {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 40px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .light {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 30% 30%, #555, #222);
+            border: 4px solid #888;
+            transition: all 0.4s ease;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.3),
+                inset 0 2px 5px rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .light::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 30%;
+            height: 30%;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+        }
+
+        .light.on {
+            background: 
+                radial-gradient(circle at 30% 30%, #ff4444, #ff1801);
+            border-color: #ff6666;
+            box-shadow: 
+                0 0 40px #ff1801,
+                0 0 80px rgba(255, 24, 1, 0.5),
+                inset 0 2px 5px rgba(255,255,255,0.3);
+            animation: lightPulse 0.5s ease-in-out;
+        }
+
+        @keyframes lightPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .react-button {
+            padding: 22px 50px;
+            font-size: 26px;
+            font-weight: bold;
+            background: 
+                linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px;
+            box-shadow: 
+                0 12px 35px rgba(0, 212, 170, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .react-button:hover {
+            background: 
+                linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 
+                0 20px 50px rgba(0, 212, 170, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .react-button:disabled {
+            background: 
+                linear-gradient(135deg, #666 0%, #555 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 
+                0 8px 20px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .results {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .championship-table, .race-results {
+            background: 
+                linear-gradient(145deg, rgba(20, 25, 30, 0.95) 0%, rgba(35, 40, 45, 0.95) 100%);
+            border-radius: 20px;
+            padding: 0;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(15px);
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 30px rgba(255, 215, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .race-results {
+    max-height: none;
+    overflow-y: visible;
+}
+
+.race-results .driver-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 100px; /* pos │ name │ time only */
+    align-items: center;
+    min-height: 60px;
+}
+
+
+.race-results .driver-name {
+    white-space: normal;         /* allow full names */
+    overflow: visible;
+    text-overflow: unset;
+    text-align: left;
+    line-height: 1.2;
+}
+
+.race-results .driver-points {
+    min-width: 80px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-family: 'Roboto Mono', monospace;
+    padding-right: 10px;
+    color: #ffd700;
+    font-weight: 600;
+}
+
+.race-results .driver-time {
+    min-width: 100px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-family: 'Roboto Mono', monospace;
+    padding-right: 14px;
+    display: block;
+    color: #00d4aa;
+    text-shadow: 0 0 5px rgba(0, 212, 170, 0.5);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+
+
+
+
+
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stats-panel {
+            background: 
+                linear-gradient(145deg, rgba(20, 25, 30, 0.95) 0%, rgba(35, 40, 45, 0.95) 100%);
+            border-radius: 20px;
+            padding: 20px;
+            border: 2px solid rgba(0, 212, 170, 0.3);
+            backdrop-filter: blur(15px);
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 30px rgba(0, 212, 170, 0.1);
+        }
+
+        .stats-panel h3 {
+            color: #00d4aa;
+            text-shadow: 0 0 15px rgba(0, 212, 170, 0.5);
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-value {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .championship-toggle {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .toggle-option {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .toggle-option.active {
+            background: linear-gradient(135deg, #ff1801, #dc143c);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 24, 1, 0.3);
+        }
+
+        .toggle-option:not(.active) {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .toggle-option:not(.active):hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .championship-table::before, .race-results::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, 
+                    transparent 0%, 
+                    rgba(255, 215, 0, 0.1) 50%, 
+                    transparent 100%
+                );
+            animation: tableShimmer 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes tableShimmer {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(50%); }
+        }
+
+        .table-header {
+            background: 
+                linear-gradient(135deg, rgba(255, 24, 1, 0.9) 0%, rgba(220, 20, 60, 0.9) 100%);
+            padding: 20px 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .table-header h3 {
+            margin: 0;
+            color: #fff;
+            text-shadow: 
+                0 2px 8px rgba(0,0,0,0.5),
+                0 0 20px rgba(255, 255, 255, 0.3);
+            font-size: 1.4em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-content {
+            padding: 20px 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .driver-row {
+            display: grid;
+            grid-template-columns: 50px 1fr auto auto;
+            gap: 20px;
+            align-items: center;
+            padding: 15px 20px;
+            margin: 8px 0;
+            background: 
+                linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .driver-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #ff1801, #00d4aa);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .driver-row:hover {
+            background: 
+                linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
+            transform: translateX(5px);
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .driver-row:hover::before {
+            opacity: 1;
+        }
+
+        .driver-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .driver-position {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            text-align: center;
+        }
+
+        .driver-name {
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .team-color-strip {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        .driver-time {
+            font-weight: bold;
+            color: #00d4aa;
+            text-shadow: 0 0 10px rgba(0, 212, 170, 0.5);
+            font-size: 1.05em;
+            text-align: right;
+            min-width: 80px;
+        }
+
+        .driver-points {
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            font-size: 1.05em;
+            text-align: right;
+            min-width: 60px;
+        }
+
+        .championship-driver-row {
+            display: grid;
+            grid-template-columns: 50px 1fr auto;
+            gap: 20px;
+            align-items: center;
+            padding: 15px 20px;
+            margin: 8px 0;
+            background: 
+                linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .championship-driver-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #ff1801, #00d4aa);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .championship-driver-row:hover {
+            background: 
+                linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
+            transform: translateX(5px);
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .championship-driver-row:hover::before {
+            opacity: 1;
+        }
+
+        .championship-driver-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .player-row {
+            background: 
+                linear-gradient(135deg, rgba(0, 212, 170, 0.25) 0%, rgba(0, 184, 148, 0.25) 100%) !important;
+            border: 2px solid rgba(0, 212, 170, 0.5) !important;
+            box-shadow: 
+                0 0 20px rgba(0, 212, 170, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .player-row::before {
+            background: linear-gradient(180deg, #00d4aa, #ff1801) !important;
+            opacity: 1 !important;
+        }
+
+        /* Metallic podium effects */
+        .podium-positions .championship-driver-row:nth-child(1) {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(255, 215, 0, 0.3) 0%, 
+                    rgba(255, 193, 7, 0.2) 25%,
+                    rgba(255, 235, 59, 0.3) 50%,
+                    rgba(255, 193, 7, 0.2) 75%,
+                    rgba(255, 215, 0, 0.3) 100%
+                );
+            border: 2px solid rgba(255, 215, 0, 0.6);
+            box-shadow: 
+                0 0 30px rgba(255, 215, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .podium-positions .championship-driver-row:nth-child(2) {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(192, 192, 192, 0.3) 0%, 
+                    rgba(169, 169, 169, 0.2) 25%,
+                    rgba(211, 211, 211, 0.3) 50%,
+                    rgba(169, 169, 169, 0.2) 75%,
+                    rgba(192, 192, 192, 0.3) 100%
+                );
+            border: 2px solid rgba(192, 192, 192, 0.6);
+            box-shadow: 
+                0 0 30px rgba(192, 192, 192, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .podium-positions .championship-driver-row:nth-child(3) {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(205, 127, 50, 0.3) 0%, 
+                    rgba(184, 115, 51, 0.2) 25%,
+                    rgba(222, 184, 135, 0.3) 50%,
+                    rgba(184, 115, 51, 0.2) 75%,
+                    rgba(205, 127, 50, 0.3) 100%
+                );
+            border: 2px solid rgba(205, 127, 50, 0.6);
+            box-shadow: 
+                0 0 30px rgba(205, 127, 50, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: 
+                linear-gradient(90deg, #00d4aa, #00b894, #ff1801);
+            transition: width 0.5s ease;
+            border-radius: 6px;
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.5);
+        }
+
+        .click-instruction {
+            font-size: 1.4em;
+            color: #ffd700;
+            margin: 25px 0;
+            animation: pulse 2s infinite;
+            text-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.8),
+                0 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Racing-inspired decorative elements */
+        .checkered-pattern {
+            position: fixed;
+            top: 0;
+            right: -10%;
+            width: 20%;
+            height: 100%;
+            background: 
+                repeating-conic-gradient(
+                    from 0deg at 50% 50%,
+                    rgba(255,255,255,0.02) 0deg 45deg,
+                    transparent 45deg 90deg
+                );
+            animation: checkerMove 15s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes checkerMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100px); }
+        }
+
+        .race-result-card {
+            background: 
+                linear-gradient(145deg, rgba(20, 25, 30, 0.95) 0%, rgba(35, 40, 45, 0.95) 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid rgba(0, 212, 170, 0.3);
+            backdrop-filter: blur(15px);
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 30px rgba(0, 212, 170, 0.1);
+        }
+
+        .race-result-card h3 {
+            color: #00d4aa;
+            text-shadow: 0 0 15px rgba(0, 212, 170, 0.5);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .race-result-card p {
+            margin: 10px 0;
+            font-size: 1.1em;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: fixed;
+            top: -10px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            animation: confetti-fall 3s linear forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .celebration-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ffd700, #ff6b35);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            z-index: 1001;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: celebrationPulse 2s ease-in-out;
+        }
+
+        @keyframes celebrationPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .position-change {
+            animation: positionMove 1s ease-in-out;
+        }
+
+        @keyframes positionMove {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="checkered-pattern"></div>
+    
+    <div class="container">
+        <!-- Driver Registration Card -->
+        <div id="serverCard" class="server-card">
+            <h1>🏁 Welcome to F1 Grand Prix Championship</h1>
+            <p style="font-size: 1.2em; margin-bottom: 30px;">Enter your driver details to join the championship</p>
+            <div class="driver-form">
+                <input type="text" id="driverName" placeholder="Enter your driver name" required>
+                
+                <div id="teamSelectionStep" class="hidden">
+                    <h3 style="color: white; margin: 20px 0 15px 0;">Select Your Team:</h3>
+                    <div class="team-selection">
+                        <div class="team-option" data-team="Red Bull Racing">Red Bull Racing</div>
+                        <div class="team-option" data-team="Ferrari">Ferrari</div>
+                        <div class="team-option" data-team="Mercedes">Mercedes</div>
+                        <div class="team-option" data-team="McLaren">McLaren</div>
+                        <div class="team-option" data-team="Alpine">Alpine</div>
+                        <div class="team-option" data-team="Aston Martin">Aston Martin</div>
+                        <div class="team-option" data-team="Haas">Haas</div>
+                        <div class="team-option" data-team="Williams">Williams</div>
+                        <div class="team-option" data-team="Kick Sauber">Kick Sauber</div>
+                        <div class="team-option" data-team="RB">RB</div>
+                    </div>
+                </div>
+
+                <div id="teammateSelectionStep" class="hidden">
+                    <h3 style="color: white; margin: 20px 0 15px 0;">Choose Your Teammate:</h3>
+                    <div class="teammate-selection" id="teammateOptions">
+                        <!-- Teammate options will be populated dynamically -->
+                    </div>
+                </div>
+
+                <button id="nextStepBtn" onclick="nextStep()">Next</button>
+                <button id="joinChampionshipBtn" class="hidden" onclick="registerDriver()">Join Championship</button>
+            </div>
+        </div>
+
+        <!-- Welcome Message -->
+        <div id="welcomeMessage" class="welcome-message hidden">
+            <h2 id="welcomeText"></h2>
+            <p id="teamInfo"></p>
+            <button onclick="startChampionship()" class="react-button">Start Championship</button>
+        </div>
+
+        <!-- Game Container -->
+        <div id="gameContainer" class="game-container hidden">
+            <div class="circuit-info">
+                <h2 id="circuitName"></h2>
+                <p id="raceInfo"></p>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="lights-container">
+                <div class="light" id="light1"></div>
+                <div class="light" id="light2"></div>
+                <div class="light" id="light3"></div>
+                <div class="light" id="light4"></div>
+                <div class="light" id="light5"></div>
+            </div>
+
+            <button id="startRaceBtn" class="react-button" onclick="startRace()">Start Race</button>
+            
+            <div id="clickInstruction" class="click-instruction hidden">
+                ⚡ PRESS SPACEBAR OR CLICK ANYWHERE TO REACT! ⚡
+            </div>	
+
+            <div id="raceResult" class="race-result-card hidden">
+                <h3>🏆 Race Result</h3>
+                <p id="reactionTime"></p>
+                <p id="position"></p>
+                <p id="points"></p>
+                <button onclick="nextRace()" class="react-button">Next Race</button>
+            </div>
+
+            <div class="results">
+                <div class="championship-table">
+                    <div class="table-header">
+                        <div class="championship-toggle">
+                            <div class="toggle-option active" onclick="toggleChampionship('drivers')">🏆 Drivers Championship</div>
+                            <div class="toggle-option" onclick="toggleChampionship('constructors')">🏁 Constructors Championship</div>
+                        </div>
+                    </div>
+                    <div class="table-content">
+                        <div id="championshipTable" class="podium-positions"></div>
+                    </div>
+                </div>
+                
+                <div class="right-panel">
+                    <div class="race-results">
+                        <div class="table-header">
+                            <h3>🏁 Current Race Results (Top 10)</h3>
+                        </div>
+                        <div class="table-content">
+                            <div id="currentRaceResults"></div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="stats-panel">
+                        <h3>📊 Race Statistics</h3>
+                        <div class="stat-item">
+                            <span>Next Race:</span>
+                            <span class="stat-value" id="nextRace">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Your Avg Time:</span>
+                            <span class="stat-value" id="avgReactionTime">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Races Remaining:</span>
+                            <span class="stat-value" id="racesRemaining">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Best Finish:</span>
+                            <span class="stat-value" id="bestFinish">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state - All variables properly declared
+        let playerName = '';
+        let playerTeam = '';
+        let playerTeammate = '';
+        let currentRace = 0;
+        let playerReactionTime = 0;
+        let raceStartTime = 0;
+        let lightsTimeout = null;
+        let raceActive = false;
+        let lightsInProgress = false;
+        let playerReactionTimes = [];
+        let playerBestFinish = 21;
+        let previousPositions = new Map();
+        let currentStep = 1;
+        let selectedTeam = '';
+        let selectedTeammate = '';
+        let championshipView = 'drivers';
+        let allDriverReactionTimes = new Map();
+        let raceWinners = [];
+
+        // F1 Circuits
+        const circuits = [
+            "Bahrain Grand Prix",
+            "Saudi Arabian Grand Prix", 
+            "Australian Grand Prix",
+            "Japanese Grand Prix",
+            "Chinese Grand Prix",
+            "Miami Grand Prix",
+            "Emilia Romagna Grand Prix",
+            "Monaco Grand Prix",
+            "British Grand Prix",
+            "Abu Dhabi Grand Prix"
+        ];
+
+        // Team structure with drivers
+        const teams = {
+            "Red Bull Racing": ["Max Verstappen", "Yuki Tsunoda"],
+            "Ferrari": ["Lewis Hamilton", "Charles Leclerc"],
+            "Mercedes": ["George Russell", "Andrea Kimi Antonelli"],
+            "McLaren": ["Lando Norris", "Oscar Piastri"],
+            "Alpine": ["Pierre Gasly", "Franco Colapinto"],
+            "Aston Martin": ["Fernando Alonso", "Lance Stroll"],
+            "Haas": ["Esteban Ocon", "Oliver Bearman"],
+            "Williams": ["Carlos Sainz", "Alex Albon"],
+            "Kick Sauber": ["Nico Hulkenberg", "Gabriel Bortoletto"],
+            "RB": ["Isack Hadjar", "Liam Lawson"]
+        };
+
+        // Updated 2025 Team colors
+        const teamColors = {
+            "Red Bull Racing": "#1E41FF",
+            "Ferrari": "#DC143C",
+            "Mercedes": "#00D2BE",
+            "McLaren": "#FF8700",
+            "Alpine": "#0090FF",
+            "Aston Martin": "#006F62",
+            "Haas": "#FFFFFF",
+            "Williams": "#005AFF",
+            "Kick Sauber": "#900000",
+            "RB": "#6692FF"
+        };
+
+        // Updated 2025 F1 Drivers lineup
+        const drivers = [
+            {name: "Max Verstappen", team: "Red Bull Racing", points: 0, topDriver: true},
+            {name: "Yuki Tsunoda", team: "Red Bull Racing", points: 0, topDriver: false},
+            {name: "Lewis Hamilton", team: "Ferrari", points: 0, topDriver: true},
+            {name: "Charles Leclerc", team: "Ferrari", points: 0, topDriver: true},
+            {name: "George Russell", team: "Mercedes", points: 0, topDriver: true},
+            {name: "Andrea Kimi Antonelli", team: "Mercedes", points: 0, topDriver: false},
+            {name: "Lando Norris", team: "McLaren", points: 0, topDriver: true},
+            {name: "Oscar Piastri", team: "McLaren", points: 0, topDriver: true},
+            {name: "Pierre Gasly", team: "Alpine", points: 0, topDriver: false},
+            {name: "Franco Colapinto", team: "Alpine", points: 0, topDriver: false},
+            {name: "Fernando Alonso", team: "Aston Martin", points: 0, topDriver: false},
+            {name: "Lance Stroll", team: "Aston Martin", points: 0, topDriver: false},
+            {name: "Esteban Ocon", team: "Haas", points: 0, topDriver: false},
+            {name: "Oliver Bearman", team: "Haas", points: 0, topDriver: false},
+            {name: "Carlos Sainz", team: "Williams", points: 0, topDriver: false},
+            {name: "Alex Albon", team: "Williams", points: 0, topDriver: false},
+            {name: "Nico Hulkenberg", team: "Kick Sauber", points: 0, topDriver: false},
+            {name: "Gabriel Bortoletto", team: "Kick Sauber", points: 0, topDriver: false},
+            {name: "Isack Hadjar", team: "RB", points: 0, topDriver: false},
+            {name: "Liam Lawson", team: "RB", points: 0, topDriver: false}
+        ];
+
+        // Points system (F1 standard)
+        const pointsSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+
+        function nextStep() {
+            if (currentStep === 1) {
+                const nameInput = document.getElementById('driverName');
+                if (!nameInput.value.trim()) {
+                    alert('Please enter your driver name!');
+                    return;
+                }
+                playerName = nameInput.value.trim();
+                nameInput.disabled = true;
+                document.getElementById('teamSelectionStep').classList.remove('hidden');
+                currentStep = 2;
+                document.getElementById('nextStepBtn').textContent = 'Select Team';
+                document.getElementById('nextStepBtn').disabled = true;
+            } else if (currentStep === 2) {
+                if (!selectedTeam) {
+                    alert('Please select a team!');
+                    return;
+                }
+                playerTeam = selectedTeam;
+                showTeammateSelection();
+                currentStep = 3;
+                document.getElementById('nextStepBtn').classList.add('hidden');
+                document.getElementById('joinChampionshipBtn').classList.remove('hidden');
+            }
+        }
+
+        function showTeammateSelection() {
+            const teammateOptions = document.getElementById('teammateOptions');
+            const teamDrivers = teams[selectedTeam];
+            
+            teammateOptions.innerHTML = '';
+            teamDrivers.forEach(driver => {
+                const option = document.createElement('div');
+                option.className = 'teammate-option';
+                option.textContent = driver;
+                option.onclick = () => selectTeammate(driver, option);
+                teammateOptions.appendChild(option);
+            });
+            
+            document.getElementById('teammateSelectionStep').classList.remove('hidden');
+        }
+
+        function selectTeammate(driver, element) {
+            document.querySelectorAll('.teammate-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedTeammate = driver;
+            playerTeammate = driver;
+        }
+
+        function registerDriver() {
+            if (!selectedTeammate) {
+                alert('Please select a teammate!');
+                return;
+            }
+
+            // Remove selected teammate from drivers list and add player
+            const teammates = teams[playerTeam];
+
+// Remove the other teammate (not selected)
+const toRemove = teammates.find(d => d !== selectedTeammate);
+const removeIndex = drivers.findIndex(d => d.name === toRemove);
+if (removeIndex !== -1) {
+    drivers.splice(removeIndex, 1);
+}
+
+            // Add player to drivers list
+            drivers.push({name: playerName, team: playerTeam, points: 0, topDriver: false});
+
+            // Hide server card and show welcome message
+            document.getElementById('serverCard').classList.add('hidden');
+            document.getElementById('welcomeMessage').classList.remove('hidden');
+            document.getElementById('welcomeText').textContent = `Welcome to the F1 World, ${playerName}!`;
+            document.getElementById('teamInfo').textContent = `Racing for ${playerTeam} alongside ${selectedTeammate}`;
+        }
+
+        function startChampionship() {
+            document.getElementById('welcomeMessage').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+            updateRaceInfo();
+            updateChampionshipTable();
+            updateStats();
+            applyCircuitTheme();
+        }
+
+        function toggleChampionship(view) {
+            championshipView = view;
+            document.querySelectorAll('.toggle-option').forEach(opt => opt.classList.remove('active'));
+            event.target.classList.add('active');
+            updateChampionshipTable();
+        }
+
+        function applyCircuitTheme() {
+            const body = document.body;
+            body.className = ''; // Clear existing classes
+            
+            const circuitName = circuits[currentRace];
+            if (circuitName.includes('Monaco')) {
+                body.classList.add('monaco-bg');
+            } else if (circuitName.includes('Bahrain')) {
+                body.classList.add('bahrain-bg');
+            } else if (circuitName.includes('British')) {
+                body.classList.add('silverstone-bg');
+            }
+        }
+
+        function updateRaceInfo() {
+            document.getElementById('circuitName').textContent = circuits[currentRace];
+            document.getElementById('raceInfo').textContent = `Race ${currentRace + 1} of ${circuits.length}`;
+            document.getElementById('progressFill').style.width = `${(currentRace / circuits.length) * 100}%`;
+        }
+
+        function updateStats() {
+            const nextRaceIndex = currentRace + 1;
+            document.getElementById('nextRace').textContent = 
+                nextRaceIndex < circuits.length ? circuits[nextRaceIndex] : 'Championship Complete';
+            
+            const avgTime = playerReactionTimes.length > 0 ? 
+                (playerReactionTimes.reduce((a, b) => a + b, 0) / playerReactionTimes.length).toFixed(3) : '-';
+            document.getElementById('avgReactionTime').textContent = avgTime + 's';
+            
+            document.getElementById('racesRemaining').textContent = circuits.length - currentRace;
+            document.getElementById('bestFinish').textContent = playerBestFinish === 21 ? '-' : playerBestFinish;
+        }
+
+        function updateSeasonStats() {
+            // Calculate fastest driver
+            let fastestDriver = '-';
+            let fastestTime = Infinity;
+            
+            allDriverReactionTimes.forEach((times, driver) => {
+                if (times.length > 0) {
+                    const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+                    if (avgTime < fastestTime) {
+                        fastestTime = avgTime;
+                        fastestDriver = driver;
+                    }
+                }
+            });
+
+            document.getElementById('fastestDriver').textContent = fastestDriver;
+            
+            // Calculate overall average reaction time
+            let totalTimes = [];
+            allDriverReactionTimes.forEach(times => {
+                totalTimes = totalTimes.concat(times);
+            });
+            
+            const overallAvg = totalTimes.length > 0 ? 
+                (totalTimes.reduce((a, b) => a + b, 0) / totalTimes.length).toFixed(3) + 's' : '-';
+            document.getElementById('avgSeasonTime').textContent = overallAvg;
+
+            // Most consistent driver (lowest standard deviation)
+            let mostConsistent = '-';
+            let lowestStdDev = Infinity;
+            
+            allDriverReactionTimes.forEach((times, driver) => {
+                if (times.length > 2) {
+                    const mean = times.reduce((a, b) => a + b, 0) / times.length;
+                    const variance = times.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / times.length;
+                    const stdDev = Math.sqrt(variance);
+                    
+                    if (stdDev < lowestStdDev) {
+                        lowestStdDev = stdDev;
+                        mostConsistent = driver;
+                    }
+                }
+            });
+
+            document.getElementById('mostConsistent').textContent = mostConsistent;
+            
+            // Last race winner
+            const lastWinner = raceWinners.length > 0 ? raceWinners[raceWinners.length - 1] : '-';
+            document.getElementById('raceWinner').textContent = lastWinner;
+        }
+
+        function generateDriverReactionTimes() {
+            const reactionTimes = [];
+            
+            for (let i = 0; i < drivers.length - 1; i++) {
+                const driver = drivers[i];
+                let baseTime = 0.24 + Math.random() * 0.08; // 0.24 to 0.32 for all drivers
+                
+                reactionTimes.push(baseTime);
+                
+                // Store reaction time for season stats
+                if (!allDriverReactionTimes.has(driver.name)) {
+                    allDriverReactionTimes.set(driver.name, []);
+                }
+                allDriverReactionTimes.get(driver.name).push(baseTime);
+            }
+            
+            return reactionTimes;
+        }
+
+        function calculateConstructorsPoints() {
+            const constructors = {};
+            
+            // Initialize constructors
+            Object.keys(teams).forEach(team => {
+                constructors[team] = 0;
+            });
+            
+            // Add player team if not already included
+            if (playerTeam && !constructors[playerTeam]) {
+                constructors[playerTeam] = 0;
+            }
+            
+            // Calculate points for each constructor
+            drivers.forEach(driver => {
+                if (driver.team && constructors.hasOwnProperty(driver.team)) {
+                    constructors[driver.team] += driver.points;
+                }
+            });
+            
+            return constructors;
+        }
+
+      function startRace() {
+    // Clear any existing timeout
+    if (lightsTimeout) {
+        clearTimeout(lightsTimeout);
+        lightsTimeout = null;
+    }
+
+    document.getElementById('startRaceBtn').classList.add('hidden');
+    document.getElementById('raceResult').classList.add('hidden');
+
+    // Reset lights
+    for (let i = 1; i <= 5; i++) {
+        document.getElementById(`light${i}`).classList.remove('on');
+    }
+
+    // Set flags and show instruction early
+    raceStartTime = 0;
+    raceActive = false;
+    lightsInProgress = true;
+    document.getElementById('clickInstruction').classList.remove('hidden'); // ✅ Shown now
+
+    // Start red light sequence
+    let lightCount = 0;
+    const lightInterval = setInterval(() => {
+        lightCount++;
+        document.getElementById(`light${lightCount}`).classList.add('on');
+
+        if (lightCount === 5) {
+            clearInterval(lightInterval);
+
+            // Wait before lights out (2–5s)
+            const delay = 2000 + Math.random() * 3000;
+            lightsTimeout = setTimeout(() => {
+                // Lights out
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById(`light${i}`).classList.remove('on');
+                }
+
+                // DO NOT re-show instruction here again
+                raceStartTime = Date.now();
+                raceActive = true;
+                lightsInProgress = false;
+            }, delay);
+        }
+    }, 1000);
+}
+
+
+        function react() {
+            if (!raceActive || raceStartTime === 0) return;
+            
+            raceActive = false;
+            playerReactionTime = (Date.now() - raceStartTime) / 1000;
+            playerReactionTimes.push(playerReactionTime);
+            
+            // Store player reaction time for season stats
+            if (!allDriverReactionTimes.has(playerName)) {
+                allDriverReactionTimes.set(playerName, []);
+            }
+            allDriverReactionTimes.get(playerName).push(playerReactionTime);
+            
+            document.getElementById('clickInstruction').classList.add('hidden');
+            
+            const aiReactionTimes = generateDriverReactionTimes();
+            
+            const raceResults = [];
+            for (let i = 0; i < drivers.length - 1; i++) {
+                raceResults.push({
+                    driver: drivers[i].name,
+                    team: drivers[i].team,
+                    time: aiReactionTimes[i]
+                });
+            }
+            raceResults.push({
+                driver: playerName,
+                team: playerTeam,
+                time: playerReactionTime
+            });
+            
+            raceResults.sort((a, b) => a.time - b.time);
+            
+            // Store race winner
+            raceWinners.push(raceResults[0].driver);
+            
+            const playerPosition = raceResults.findIndex(result => result.driver === playerName) + 1;
+            if (playerPosition < playerBestFinish) {
+                playerBestFinish = playerPosition;
+            }
+            
+            // Store previous positions for animation
+            const sortedDrivers = [...drivers].sort((a, b) => b.points - a.points);
+            sortedDrivers.forEach((driver, index) => {
+                previousPositions.set(driver.name, index + 1);
+            });
+            
+            for (let i = 0; i < Math.min(10, raceResults.length); i++) {
+                const driverName = raceResults[i].driver;
+                const points = pointsSystem[i] || 0;
+                
+                const driverIndex = drivers.findIndex(d => d.name === driverName);
+                if (driverIndex !== -1) {
+                    drivers[driverIndex].points += points;
+                }
+            }
+            
+            // Check for podium finish
+            if (playerPosition <= 3) {
+                showCelebration(playerPosition);
+            }
+            
+            displayRaceResults(raceResults, playerPosition);
+            updateChampionshipTable();
+            updateStats();
+            updateSeasonStats();
+            
+            raceStartTime = 0;
+        }
+
+        function showCelebration(position) {
+            // Create confetti
+            createConfetti();
+            
+            // Show celebration message
+            const celebrationDiv = document.createElement('div');
+            celebrationDiv.className = 'celebration-message';
+            
+            let message = '';
+            if (position === 1) {
+                message = '🏆 VICTORY! 🏆<br>Incredible drive!';
+            } else if (position === 2) {
+                message = '🥈 PODIUM FINISH! 🥈<br>Amazing performance!';
+            } else {
+                message = '🥉 PODIUM FINISH! 🥉<br>Great job!';
+            }
+            
+            celebrationDiv.innerHTML = message;
+            document.body.appendChild(celebrationDiv);
+            
+            setTimeout(() => {
+                celebrationDiv.remove();
+            }, 3000);
+        }
+
+                function createConfetti() {
+            const colors = ['#ffd700', '#ff6b35', '#ff1801', '#00d4aa', '#ffffff'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        function displayRaceResults(results, playerPosition) {
+            const playerPoints = playerPosition <= 10 ? (pointsSystem[playerPosition - 1] || 0) : 0;
+            
+            document.getElementById('reactionTime').textContent = `Your reaction time: ${playerReactionTime.toFixed(3)}s`;
+            document.getElementById('position').textContent = `Position: ${playerPosition}/${results.length}`;
+            document.getElementById('points').textContent = `Points earned: ${playerPoints}`;
+            
+            // Show only top 10 race results
+            let resultsHTML = '';
+            for (let i = 0; i < Math.min(10, results.length); i++) {
+                const result = results[i];
+                const points = pointsSystem[i] || 0;
+                const isPlayer = result.driver === playerName;
+                const teamColor = teamColors[result.team] || '#666';
+                
+                resultsHTML += `
+                    <div class="driver-row ${isPlayer ? 'player-row' : ''}">
+                        <span class="driver-position">${i + 1}</span>
+                        <span class="driver-name">
+                            <span class="team-color-strip" style="background-color: ${teamColor}"></span>
+                            ${result.driver}
+                        </span>
+                        <span class="driver-time">${result.time.toFixed(3).padStart(6, '0')}s</span>
+
+                        <span class="driver-points">${points} pts</span>
+                    </div>
+                `;
+            }
+            document.getElementById('currentRaceResults').innerHTML = resultsHTML;
+            
+            document.getElementById('raceResult').classList.remove('hidden');
+        }
+
+
+        function updateChampionshipTable() {
+            if (championshipView === 'drivers') {
+                const sortedDrivers = [...drivers].sort((a, b) => b.points - a.points);
+                
+                let tableHTML = '';
+                for (let i = 0; i < sortedDrivers.length; i++) {
+                    const driver = sortedDrivers[i];
+                    const isPlayer = driver.name === playerName;
+                    const teamColor = teamColors[driver.team] || '#666';
+                    const previousPos = previousPositions.get(driver.name) || i + 1;
+                    const positionChanged = previousPos !== i + 1;
+                    
+                    tableHTML += `
+                        <div class="championship-driver-row ${isPlayer ? 'player-row' : ''} ${positionChanged ? 'position-change' : ''}">
+                            <span class="driver-position">${i + 1}</span>
+                            <span class="driver-name">
+                                <span class="team-color-strip" style="background-color: ${teamColor}"></span>
+                                ${driver.name}
+                            </span>
+                            <span class="driver-points">${driver.points} pts</span>
+                        </div>
+                    `;
+                }
+                document.getElementById('championshipTable').innerHTML = tableHTML;
+            } else {
+                // Constructors Championship
+                const constructors = calculateConstructorsPoints();
+                const sortedConstructors = Object.entries(constructors).sort((a, b) => b[1] - a[1]);
+                
+                let tableHTML = '';
+                for (let i = 0; i < sortedConstructors.length; i++) {
+                    const [team, points] = sortedConstructors[i];
+                    const isPlayerTeam = team === playerTeam;
+                    const teamColor = teamColors[team] || '#666';
+                    
+                    tableHTML += `
+                        <div class="championship-driver-row ${isPlayerTeam ? 'player-row' : ''}">
+                            <span class="driver-position">${i + 1}</span>
+                            <span class="driver-name">
+                                <span class="team-color-strip" style="background-color: ${teamColor}"></span>
+                                ${team}
+                            </span>
+                            <span class="driver-points">${points} pts</span>
+                        </div>
+                    `;
+                }
+                document.getElementById('championshipTable').innerHTML = tableHTML;
+            }
+        }
+
+        function nextRace() {
+    currentRace++;
+
+    if (currentRace >= circuits.length) {
+        showChampionshipResults();
+        return;
+    }
+
+    // Clear any leftover timeout and race flags
+    if (lightsTimeout) {
+        clearTimeout(lightsTimeout);
+        lightsTimeout = null;
+    }
+    raceStartTime = 0;
+    raceActive = false;
+
+    // Reset lights immediately
+    for (let i = 1; i <= 5; i++) {
+        document.getElementById(`light${i}`).classList.remove('on');
+    }
+
+    // Reset race result and instructions
+    document.getElementById('raceResult').classList.add('hidden');
+    document.getElementById('clickInstruction').classList.add('hidden');
+    document.getElementById('startRaceBtn').classList.remove('hidden');
+
+    // Update visuals
+    updateRaceInfo();
+    updateStats();
+    updateSeasonStats();
+    applyCircuitTheme();
+}
+
+
+        function showChampionshipResults() {
+            const sortedDrivers = [...drivers].sort((a, b) => b.points - a.points);
+            const playerPosition = sortedDrivers.findIndex(d => d.name === playerName) + 1;
+            
+            let message = '';
+            if (playerPosition === 1) {
+                message = `🏆 WORLD CHAMPION! 🏆\n\nCongratulations ${playerName}!\nYou are the F1 World Champion with ${sortedDrivers.find(d => d.name === playerName).points} points!\n\nIncredible season!`;
+                createConfetti();
+            } else {
+                message = `Championship Complete!\n\nFinal Results:\nYour Position: ${playerPosition}/${sortedDrivers.length}\nChampion: ${sortedDrivers[0].name} (${sortedDrivers[0].points} points)\n\nThe F1 world wants you to stay a part of the game and continue showing up!\nYour journey continues...`;
+            }
+            
+            alert(message);
+            
+            // Reset for new championship
+            currentRace = 0;
+            playerReactionTimes = [];
+            playerBestFinish = 21;
+            previousPositions.clear();
+            allDriverReactionTimes.clear();
+            raceWinners = [];
+            drivers.forEach(driver => driver.points = 0);
+            updateRaceInfo();
+            updateChampionshipTable();
+            updateStats();
+            updateSeasonStats();
+            applyCircuitTheme();
+            document.getElementById('startRaceBtn').classList.remove('hidden');
+            document.getElementById('raceResult').classList.add('hidden');
+        }
+document.addEventListener('click', function(event) {
+    if (raceActive) {
+        event.preventDefault();
+        react();
+    }
+});
+
+document.addEventListener('keydown', function(event) {
+    if (event.code === 'Space' || event.code === 'Enter') {
+        event.preventDefault();
+        if (raceActive) {
+            react();
+        }
+    }
+});
+
+
+
+        // Team selection handlers - Fixed to work properly
+        document.addEventListener('DOMContentLoaded', function() {
+            // Use event delegation for dynamically created elements
+            document.addEventListener('click', function(event) {
+                if (event.target.classList.contains('team-option')) {
+                    document.querySelectorAll('.team-option').forEach(opt => opt.classList.remove('selected'));
+                    event.target.classList.add('selected');
+                    selectedTeam = event.target.dataset.team;
+                    document.getElementById('nextStepBtn').disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
